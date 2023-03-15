@@ -147,11 +147,9 @@ func (c *controller) Redirect(w http.ResponseWriter, r *http.Request) {
 
 	var actualLink string
 	var status int = http.StatusOK
-	var flag bool = false
 
 	if cacheVal, ok := c.cache.Get(linkKey); ok {
 		actualLink = cacheVal
-		flag = true
 	} else {
 		link, err := c.repo.FindLink(linkKey)
 		if err != nil {
@@ -171,10 +169,6 @@ func (c *controller) Redirect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.cache.Add(linkKey, actualLink)
-
-	if flag {
-		actualLink = "from the cache: " + actualLink
-	}
 
 	w.WriteHeader(status)
 	JsonSend(actualLink, w)
