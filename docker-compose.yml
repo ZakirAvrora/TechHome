@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: redirect_service
+    build: .
+    ports:
+      - '8081:8081'
+    restart: on-failure
+    volumes:
+      - api:/usr/src/app/
+    depends_on:
+      - database
+    networks:
+      - fullstack
+
+  database:
+    container_name: database_app
+    image: postgres:15-alpine
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_DB}
+      - DATABASE_HOST=${DATABASE_HOST}
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - fullstack
+
+volumes:
+  api:
+  db:
+
+networks:
+  fullstack:
+    driver: bridge
