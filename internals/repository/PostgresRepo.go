@@ -56,21 +56,24 @@ func (p *PostgresRepo) GetLink(id int) (models.Link, error) {
 
 func (p *PostgresRepo) CreateLink(link models.Link) (int64, error) {
 	query := `INSERT INTO redirects (active_link, history_link)
-			  VALUES (:active_link, :history_link) RETURNING redirect_id`
+			  VALUES (:active_link, :history_link)`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	res, err := p.db.NamedExecContext(ctx, query, link)
+	_, err := p.db.NamedExecContext(ctx, query, link)
 	if err != nil {
 		return 0, err
 	}
 
-	id, err := res.LastInsertId()
+	var id int64
+	query = `SELECT redirect_id FROM redirects
+			  WHERE active_link = $1 AND history_link = $2`
+
+	err = p.db.Get(&id, query, link.ActiveLink, link.HistoryLink)
 	if err != nil {
 		return 0, err
 	}
-
 	return id, nil
 }
 
